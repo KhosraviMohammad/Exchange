@@ -21,14 +21,24 @@ ENGINE = create_sqlite_engine(path='D:\programming\python\django\projects\Exchan
 
 @app.task()
 def get_data_from_tsetmc_com():
-    response = requests.get('http://members.tsetmc.com/tsev2/excel/MarketWatchPlus.aspx?d=0')
-    xlsx = io.BytesIO(response.content)
-    df = pandas.read_excel(xlsx)
-    df = df.iloc[2:, [0,3, 11, 19]]
-    df.columns = ['name', 'volume', 'final_price', 'price']
-    df['stored_date'] = datetime.datetime.now()
+    '''
+    it is a task that gets symbol data from tsetmc.com and stores them to Symbol model in database
+
+    :return:
+    '''
+
+    market_watch_data_frame = fpy.Get_MarketWatch(save_excel=False)[0]
+    market_watch_data_frame['stored_date'] = datetime.datetime.now()
+    cleaned_market_watch_data_frame = market_watch_data_frame[[
+        'Name', 'Time', 'Final', 'Volume', 'Market', 'Sector', 'stored_date'
+    ]]
+    cleaned_market_watch_data_frame.columns = [
+        'name', 'time', 'final_price', 'volume', 'market', 'sector', 'stored_date'
+    ]
+    cleaned_market_watch_data_frame.index.name = 'symbol_name'
     table_name = Symbol.objects.model._meta.db_table
-    df.to_sql('{0}'.format(table_name), con=ENGINE, if_exists='append', index=False)
+    cleaned_market_watch_data_frame.to_sql('{0}'.format(table_name), con=ENGINE, if_exists='append', index=True)
+
 
 @app.task()
 def calculate_slope():
