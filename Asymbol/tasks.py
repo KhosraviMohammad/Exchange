@@ -50,3 +50,18 @@ def calculate_slope():
     data_frame['slope'] = slope
 
     return 1
+
+
+@app.task()
+def manage_tasks():
+    time_start = datetime.datetime.now()
+    is_task_done = True
+    while True:
+        if is_task_done:
+            task_tsetmc = get_data_from_tsetmc_com.delay()
+        is_task_done = task_tsetmc.ready()
+        time_delta = datetime.datetime.now() - time_start
+        if time_delta.total_seconds() >= 300:
+            calculate_slope.delay()
+            time_start = datetime.datetime.now()
+
