@@ -8,7 +8,7 @@ import io
 import pandas
 import numpy
 from django.db.models import Count, F
-
+from Exchange.celery import app
 from Asymbol.models import Symbol
 
 from utils.engine import create_sqlite_engine
@@ -19,7 +19,7 @@ import finpy_tse as fpy
 ENGINE = create_sqlite_engine(path='D:\programming\python\django\projects\Exchange\db.sqlite3')
 
 
-@shared_task
+@app.task()
 def get_data_from_tsetmc_com():
     response = requests.get('http://members.tsetmc.com/tsev2/excel/MarketWatchPlus.aspx?d=0')
     xlsx = io.BytesIO(response.content)
@@ -30,7 +30,7 @@ def get_data_from_tsetmc_com():
     table_name = Symbol.objects.model._meta.db_table
     df.to_sql('{0}'.format(table_name), con=ENGINE, if_exists='append', index=False)
 
-@shared_task
+@app.task()
 def calculate_slope():
     # calculate x axis
     time_axis_point_list = calculate_time_axis()
