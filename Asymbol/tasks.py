@@ -12,7 +12,8 @@ from Exchange.celery import app
 from Asymbol.models import Symbol
 
 from utils.engine import create_sqlite_engine
-from utils.task_functions import calculate_time_axis, calculate_final_price_changes_from_Final_percent_and_Final_amount
+from utils.task_functions import calculate_time_axis_point, calculate_final_price_changes_from_Final_percent_and_Final_amount, \
+    convert_date_time_str_list_to_date_time_obj_list
 import finpy_tse as fpy
 
 
@@ -46,23 +47,27 @@ def get_data_from_tsetmc_com():
 @app.task()
 def calculate_slope():
     # calculate x axis
-    time_axis_point_list = calculate_time_axis()
+    symbol_obj = Symbol.objects.raw(
+        'select id, name, GROUP_CONCAT(stored_date) as dates from Asymbol_symbol  group by name LIMIT 1;')[0]
+    time_str_list = symbol_obj.dates.split(',')
+    date_time_obj_list = convert_date_time_str_list_to_date_time_obj_list(time_str_list, '%Y-%m-%d %H:%M:%S.%f')
+    time_axis_point_list = calculate_time_axis_point(date_time_obj_list)
 
     # calculate y axis
     symbol_qs = Symbol.objects.all()
-    data_frame = pandas.DataFrame(list(symbol_qs.values('name', 'final_price')))
-    data_frame = data_frame.astype({'final_price': 'float'})
-    data_frame = data_frame.groupby('name')['final_price'].apply(list).reset_index(name='final_prices')
-    final_prices_data_frame = data_frame.iloc[:, [1]]
-    prices_list = []
-    for prices in final_prices_data_frame['final_prices']:
-        prices_list.append(prices)
-    final_price_axis_point_list = numpy.array(prices_list).T
-    slope = numpy.polyfit(time_axis_point_list, final_price_axis_point_list, 1)[0]
+    data_frame = pandas.DataFrame(list(symbol_qs.values('symbol_name', 'final_price_change')))
+    data_frame = data_frame.astype({'final_price_change': 'float'})
+    data_frame = data_frame.groupby('symbol_name')['final_price_change'].apply(list).reset_index(name='final_price_changes')
+    final_price_changes_data_frame = data_frame.iloc[:, [1]]
+    final_price_changes_list = []
+    for prices in final_price_changes_data_frame['final_price_changes']:
+        final_price_changes_list.append(prices)
+    final_price_change_axis_point_list = numpy.array(final_price_changes_list).T
+    slope = numpy.polyfit(time_axis_point_list, final_price_change_axis_point_list, 1)[0]
     slope = slope.reshape(len(slope), 1)
     data_frame['slope'] = slope
 
-    return 1
+    return data_frame
 
 
 @app.task()

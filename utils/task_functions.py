@@ -4,23 +4,26 @@ import pandas
 import numpy
 
 
-def calculate_time_axis():
-    symbol_obj = Symbol.objects.raw(
-        'select id, name, GROUP_CONCAT(stored_date) as dates from Asymbol_symbol  group by name LIMIT 1;')[0]
-    date_time_in_str_list = symbol_obj.dates.split(',')
-    time_point_list = [0]
-    for index, date_time_in_str \
-            in enumerate(date_time_in_str_list):
-        per_date_time_obj = datetime.datetime.strptime(date_time_in_str, '%Y-%m-%d %H:%M:%S.%f')
-        if len(date_time_in_str_list) > index + 1:
-            next_date_time_obj = datetime.datetime.strptime(date_time_in_str_list[index + 1], '%Y-%m-%d %H:%M:%S.%f')
-            time_delta_obj = next_date_time_obj - per_date_time_obj
+def convert_date_time_str_list_to_date_time_obj_list(time_list, format):
+    date_time_obj_list = []
+    for time_in_str in time_list:
+        date_time_obj = datetime.datetime.strptime(time_in_str, format)
+        date_time_obj_list.append(date_time_obj)
+    return date_time_obj_list
+
+
+def calculate_time_axis_point(date_time_obj_list):
+    time_axis_point_list = [0]
+    for index, date_time_obj in enumerate(date_time_obj_list):
+        if len(date_time_obj_list) > index + 1:
+            next_date_time_obj = date_time_obj_list[index + 1]
+            time_delta_obj = next_date_time_obj - date_time_obj
             total_second = time_delta_obj.total_seconds()
-            time_point = time_point_list[index] + total_second
-            time_point_list.append(time_point)
+            time_point = time_axis_point_list[index] + total_second
+            time_axis_point_list.append(time_point)
         else:
             break
-    return time_point_list
+    return time_axis_point_list
 
 
 def calculate_final_price_changes_from_Final_percent_and_Final_amount(data_frame):
