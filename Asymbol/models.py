@@ -1,5 +1,6 @@
 from django.db import models
 
+
 # Create your models here.
 
 
@@ -15,3 +16,10 @@ class Symbol(models.Model):
     price = models.CharField(max_length=30, null=True, blank=True)
     stored_date = models.DateTimeField(auto_now=True)
     final_price_change = models.CharField(max_length=30, null=True, blank=True)
+
+
+class Slope(models.Model):
+    symbol_name = models.CharField(max_length=30, null=True, blank=True)
+    value = models.CharField(max_length=30, null=True, blank=True)
+    from_date = models.DateTimeField(null=True, blank=True)
+    to_date = models.DateTimeField(null=True, blank=True)
