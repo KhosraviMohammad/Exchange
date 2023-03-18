@@ -39,7 +39,7 @@ def get_data_from_tsetmc_com():
     return cleaned_market_watch_data_frame
 
 
-def calculate_new_slope(from_date, to_date):
+def calculate_slope(from_date, to_date):
     cursor = connection.cursor()
     sub_query = f'''
         WITH Asymbol_symbol_subquery AS (
@@ -74,32 +74,6 @@ def calculate_new_slope(from_date, to_date):
 
 
 @app.task()
-def calculate_slope():
-    # calculate x axis
-    symbol_obj = Symbol.objects.raw(
-        'select id, name, GROUP_CONCAT(stored_date) as dates from Asymbol_symbol  group by name LIMIT 1;')[0]
-    time_str_list = symbol_obj.dates.split(',')
-    date_time_obj_list = convert_date_time_str_list_to_date_time_obj_list(time_str_list, '%Y-%m-%d %H:%M:%S.%f')
-    time_axis_point_list = calculate_time_axis_point(date_time_obj_list)
-
-    # calculate y axis
-    symbol_qs = Symbol.objects.all()
-    data_frame = pandas.DataFrame(list(symbol_qs.values('symbol_name', 'final_price_change')))
-    data_frame = data_frame.astype({'final_price_change': 'float'})
-    data_frame = data_frame.groupby('symbol_name')['final_price_change'].apply(list).reset_index(name='final_price_changes')
-    final_price_changes_data_frame = data_frame.iloc[:, [1]]
-    final_price_changes_list = []
-    for prices in final_price_changes_data_frame['final_price_changes']:
-        final_price_changes_list.append(prices)
-    final_price_change_axis_point_list = numpy.array(final_price_changes_list).T
-    slope = numpy.polyfit(time_axis_point_list, final_price_change_axis_point_list, 1)[0]
-    slope = slope.reshape(len(slope), 1)
-    data_frame['slope'] = slope
-
-    return data_frame
-
-
-@app.task()
 def manage_tasks():
     symbol_table_name = Symbol.objects.model._meta.db_table
     slope_table_name = Symbol.objects.model._meta.db_table
@@ -119,6 +93,6 @@ def manage_tasks():
             else:
                 from_date = Symbol.objects.filter().aggregate(today_smallest_date=Min('stored_date'))['today_smallest_date']
                 to_date = from_date + datetime.timedelta(seconds=300)
-            slope_data_frame = calculate_new_slope(from_date=from_date, to_date=to_date)
+            slope_data_frame = calculate_slope(from_date=from_date, to_date=to_date)
             slope_data_frame.to_sql('{0}'.format(slope_table_name), con=ENGINE, if_exists='append', index=True)
             time_start = datetime.datetime.now()
