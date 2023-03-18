@@ -16,6 +16,7 @@ from utils.task_functions import calculate_time_axis_point, calculate_final_pric
     convert_date_time_str_list_to_date_time_obj_list
 import finpy_tse as fpy
 
+from django.db import connection
 
 ENGINE = create_sqlite_engine(path='D:\programming\python\django\projects\Exchange\db.sqlite3')
 
@@ -42,6 +43,31 @@ def get_data_from_tsetmc_com():
     cleaned_market_watch_data_frame.index.name = 'symbol_name'
     table_name = Symbol.objects.model._meta.db_table
     cleaned_market_watch_data_frame.to_sql('{0}'.format(table_name), con=ENGINE, if_exists='append', index=True)
+
+
+@app.task()
+def calculate_new_slope():
+    cursor = connection.cursor()
+    sub_query = '''
+        WITH Asymbol_symbol_subquery AS (
+            SELECT "id" as pk, symbol_name, to_seconds(CAST(stored_date as text)) as time, CAST(final_price_change as float) as price from "Asymbol_symbol" 
+        ), average_subquery AS (
+            SELECT symbol_name, sum(CAST(time as float)) / count(time)  as avgx, sum(CAST(price as float)) / count(price) as avgy
+            FROM Asymbol_symbol_subquery group by  symbol_name
+        )
+    '''
+    query = '''
+        SELECT Asymbol_symbol_subquery.symbol_name,
+               (sum((time - avgx) * (Asymbol_symbol_subquery.price - average_subquery.avgy))) /
+                (sum((time - average_subquery.avgx) * (time - average_subquery.avgx))) as slope
+        FROM Asymbol_symbol_subquery
+        join average_subquery on Asymbol_symbol_subquery.symbol_name = average_subquery.symbol_name
+        group by Asymbol_symbol_subquery.symbol_name;
+    '''
+    full_query = sub_query + query
+    cursor.execute(full_query)
+    symbol_slope_list = cursor.fetchall()
+    return symbol_slope_list
 
 
 @app.task()
