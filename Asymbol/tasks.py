@@ -21,7 +21,6 @@ from django.db import connection
 ENGINE = create_sqlite_engine(path='D:\programming\python\django\projects\Exchange\db.sqlite3')
 
 
-@app.task()
 def get_data_from_tsetmc_com():
     '''
     it is a task that gets symbol data from tsetmc.com and stores them to Symbol model in database
@@ -45,7 +44,6 @@ def get_data_from_tsetmc_com():
     cleaned_market_watch_data_frame.to_sql('{0}'.format(table_name), con=ENGINE, if_exists='append', index=True)
 
 
-@app.task()
 def calculate_new_slope(from_date, to_date):
     cursor = connection.cursor()
     sub_query = f'''
