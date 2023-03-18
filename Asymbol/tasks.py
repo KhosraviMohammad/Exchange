@@ -23,7 +23,7 @@ ENGINE = create_sqlite_engine(path='D:\programming\python\django\projects\Exchan
 
 def get_data_from_tsetmc_com():
     '''
-    it is a task that gets symbol data from tsetmc.com and stores them to Symbol model in database
+    it is a task that gets symbol data from tsetmc.com and returns them
 
     :return:
     '''
@@ -40,8 +40,7 @@ def get_data_from_tsetmc_com():
     final_price_change_list = calculate_final_price_changes_from_Final_percent_and_Final_amount(cleaned_market_watch_data_frame)
     cleaned_market_watch_data_frame['final_price_change'] = final_price_change_list
     cleaned_market_watch_data_frame.index.name = 'symbol_name'
-    table_name = Symbol.objects.model._meta.db_table
-    cleaned_market_watch_data_frame.to_sql('{0}'.format(table_name), con=ENGINE, if_exists='append', index=True)
+    return cleaned_market_watch_data_frame
 
 
 def calculate_new_slope(from_date, to_date):
