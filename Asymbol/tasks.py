@@ -46,11 +46,13 @@ def get_data_from_tsetmc_com():
 
 
 @app.task()
-def calculate_new_slope():
+def calculate_new_slope(from_date, to_date):
     cursor = connection.cursor()
-    sub_query = '''
+    sub_query = f'''
         WITH Asymbol_symbol_subquery AS (
-            SELECT "id" as pk, symbol_name, to_seconds(CAST(stored_date as text)) as time, CAST(final_price_change as float) as price from "Asymbol_symbol" 
+            SELECT "id" as pk, symbol_name, to_seconds(CAST(stored_date as text)) as time, CAST(final_price_change as float) as price 
+            from "Asymbol_symbol" 
+            WHERE stored_date BETWEEN {from_date} AND {to_date}
         ), average_subquery AS (
             SELECT symbol_name, sum(CAST(time as float)) / count(time)  as avgx, sum(CAST(price as float)) / count(price) as avgy
             FROM Asymbol_symbol_subquery group by  symbol_name
@@ -72,7 +74,10 @@ def calculate_new_slope():
     full_query = sub_query + query
     cursor.execute(full_query)
     symbol_slope_list = cursor.fetchall()
-    return symbol_slope_list
+    slope_data_frame = pandas.DataFrame(symbol_slope_list, columns=['symbol_name', 'value'])
+    slope_data_frame['from_date'] = from_date
+    slope_data_frame['to_date'] = to_date
+    return slope_data_frame
 
 
 @app.task()
