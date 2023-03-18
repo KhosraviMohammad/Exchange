@@ -54,15 +54,20 @@ def calculate_new_slope():
         ), average_subquery AS (
             SELECT symbol_name, sum(CAST(time as float)) / count(time)  as avgx, sum(CAST(price as float)) / count(price) as avgy
             FROM Asymbol_symbol_subquery group by  symbol_name
-        )
+        ), division as (
+			SELECT Asymbol_symbol_subquery.symbol_name as symbol_name, 
+			sum((Asymbol_symbol_subquery.time - avgx) * (Asymbol_symbol_subquery.price - average_subquery.avgy)) as face,
+			sum((Asymbol_symbol_subquery.time - average_subquery.avgx) * (Asymbol_symbol_subquery.time - average_subquery.avgx)) as denominator
+			FROM Asymbol_symbol_subquery
+			join average_subquery on Asymbol_symbol_subquery.symbol_name = average_subquery.symbol_name
+			group by Asymbol_symbol_subquery.symbol_name
+		)
     '''
     query = '''
-        SELECT Asymbol_symbol_subquery.symbol_name,
-               (sum((time - avgx) * (Asymbol_symbol_subquery.price - average_subquery.avgy))) /
-                (sum((time - average_subquery.avgx) * (time - average_subquery.avgx))) as slope
-        FROM Asymbol_symbol_subquery
-        join average_subquery on Asymbol_symbol_subquery.symbol_name = average_subquery.symbol_name
-        group by Asymbol_symbol_subquery.symbol_name;
+        SELECT division.symbol_name as symbol_name,
+        cast ((division.face /(CASE  WHEN division.denominator=0   THEN Null else division.denominator END)) as integer)
+        as  slope
+        FROM division
     '''
     full_query = sub_query + query
     cursor.execute(full_query)
