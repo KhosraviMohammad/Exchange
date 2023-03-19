@@ -97,6 +97,8 @@ def calculate_slope(from_date, to_date):
     symbol_slope_list = cursor.fetchall()
     slope_data_frame = pandas.DataFrame(symbol_slope_list, columns=['symbol_name', 'value'])
     slope_data_frame['value'] = slope_data_frame['value'].round(decimals=2)
+    if len(symbol_slope_list) == 0:
+        slope_data_frame = slope_data_frame.append({'symbol_name': None, 'value': None}, ignore_index=True)
     slope_data_frame['from_date'] = from_date
     slope_data_frame['to_date'] = to_date
     return slope_data_frame
