@@ -73,7 +73,7 @@ def calculate_slope(from_date, to_date):
         WITH Asymbol_symbol_subquery AS (
             SELECT "id" as pk, symbol_name, to_seconds(CAST(stored_date as text)) as time, CAST(final_price_change as float) as price 
             from "Asymbol_symbol" 
-            WHERE stored_date BETWEEN {from_date} AND {to_date}
+            WHERE stored_date BETWEEN '{from_date}' AND '{to_date}'
         ), average_subquery AS (
             SELECT symbol_name, sum(CAST(time as float)) / count(time)  as avgx, sum(CAST(price as float)) / count(price) as avgy
             FROM Asymbol_symbol_subquery group by  symbol_name
@@ -88,7 +88,7 @@ def calculate_slope(from_date, to_date):
     '''
     query = '''
         SELECT division.symbol_name as symbol_name,
-        cast ((division.face /(CASE  WHEN division.denominator=0   THEN Null else division.denominator END)) as integer)
+        cast ((division.face /(CASE  WHEN division.denominator=0   THEN Null else division.denominator END)) as float)
         as  slope
         FROM division
     '''
