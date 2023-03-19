@@ -16,7 +16,7 @@ ENGINE = create_sqlite_engine(path='D:\programming\python\django\projects\Exchan
 @app.task()
 def manage_tasks():
     symbol_table_name = Symbol.objects.model._meta.db_table
-    slope_table_name = Symbol.objects.model._meta.db_table
+    slope_table_name = Slope.objects.model._meta.db_table
     time_start = datetime.datetime.now()
     while True:
         data_from_tsetmc_com = get_data_from_tsetmc_com()
@@ -28,11 +28,12 @@ def manage_tasks():
             today_date = datetime.datetime(year=today_date_time.year, month=today_date_time.month, day=today_date_time.day)
             slope_qs = Slope.objects.filter(from_date__gte=today_date)
             if slope_qs.exists():
-                from_date = slope_qs.aggregate(Max('stored_date'))
+                from_date = slope_qs.aggregate(last_date_slop=Max('to_date'))['last_date_slop']
                 to_date = from_date + datetime.timedelta(seconds=300)
             else:
-                from_date = Symbol.objects.filter().aggregate(today_smallest_date=Min('stored_date'))['today_smallest_date']
+                from_date = Symbol.objects.filter(stored_date__gte=today_date.date()).aggregate(today_smallest_date=Min('stored_date'))['today_smallest_date']
                 to_date = from_date + datetime.timedelta(seconds=300)
             slope_data_frame = calculate_slope(from_date=from_date, to_date=to_date)
-            slope_data_frame.to_sql('{0}'.format(slope_table_name), con=ENGINE, if_exists='append', index=True)
+            slope_data_frame['value'] = slope_data_frame['value'].round(decimals=2)
+            slope_data_frame.to_sql('{0}'.format(slope_table_name), con=ENGINE, if_exists='append', index=False)
             time_start = datetime.datetime.now()
