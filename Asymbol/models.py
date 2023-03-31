@@ -16,6 +16,7 @@ class Symbol(models.Model):
     price = models.CharField(max_length=30, null=True, blank=True)
     stored_date = models.DateTimeField(auto_now=True)
     final_price_change = models.CharField(max_length=30, null=True, blank=True)
+    is_calculated = models.BooleanField(default=False, null=True, blank=True)
 
 
 class Slope(models.Model):
