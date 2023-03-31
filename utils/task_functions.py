@@ -45,28 +45,6 @@ def calculate_final_price_changes_from_Final_percent_and_Final_amount(data_frame
     return final_price_change_list
 
 
-def get_data_from_tsetmc_com():
-    '''
-    it is a task that gets symbol data from tsetmc.com and returns them
-
-    :return:
-    '''
-
-    market_watch_data_frame = fpy.Get_MarketWatch(save_excel=False)[0]
-    market_watch_data_frame['stored_date'] = datetime.datetime.now()
-
-    cleaned_market_watch_data_frame = market_watch_data_frame[[
-        'Name', 'Time', 'Final', 'Volume', 'Market', 'Sector', 'stored_date', 'Final(%)',
-    ]]
-    cleaned_market_watch_data_frame.columns = [
-        'name', 'time', 'final_price_amount', 'volume', 'market', 'sector', 'stored_date', 'final_price_percent'
-    ]
-    final_price_change_list = calculate_final_price_changes_from_Final_percent_and_Final_amount(cleaned_market_watch_data_frame)
-    cleaned_market_watch_data_frame['final_price_change'] = final_price_change_list
-    cleaned_market_watch_data_frame.index.name = 'symbol_name'
-    return cleaned_market_watch_data_frame
-
-
 def calculate_slope(from_date, to_date):
     cursor = connection.cursor()
     sub_query = f'''
