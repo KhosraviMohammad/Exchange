@@ -9,7 +9,7 @@ from utils.task_functions import calculate_slope, calculate_final_price_changes_
 
 import finpy_tse as fpy
 
-ENGINE = create_sqlite_engine(path='D:\programming\python\django\projects\Exchange\db.sqlite3')
+ENGINE = create_sqlite_engine()
 
 
 @app.task()
