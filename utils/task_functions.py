@@ -91,14 +91,14 @@ def get_limit_date_time():
     if calculated_until_date_time is None:
         today_date = datetime.datetime.today().date()
         cache.set('calculated_until_date_time', today_date)
-        limit_date_time = today_date
+        limit_date_time = (today_date, today_date)
     elif calculated_until_date_time is not None:
         today_biggest_date = Symbol.objects.filter(stored_date__gte=calculated_until_date_time).aggregate(
             today_biggest_date=Max('stored_date'))['today_biggest_date']
         if today_biggest_date is None:
             cache.set('calculated_until_date_time', calculated_until_date_time)
-            limit_date_time = calculated_until_date_time
+            limit_date_time = (calculated_until_date_time, calculated_until_date_time)
         else:
+            limit_date_time = (today_biggest_date, calculated_until_date_time)
             cache.set('calculated_until_date_time', today_biggest_date)
-            limit_date_time = today_biggest_date
     return limit_date_time
