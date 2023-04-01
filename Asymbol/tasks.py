@@ -44,6 +44,4 @@ def manage_slope():
     to_date, from_date = get_limit_date_time()
     slope_data_frame = calculate_slope(from_date=from_date, to_date=to_date)
     slope_data_frame['value'] = slope_data_frame['value'].round(decimals=2)
-    if len(slope_data_frame) == 0:
-        slope_data_frame = slope_data_frame.append({'symbol_name': None, 'value': None}, ignore_index=True)
     slope_data_frame.to_sql('{0}'.format(slope_table_name), con=ENGINE, if_exists='append', index=False)
