@@ -1,7 +1,13 @@
 import datetime
-import finpy_tse as fpy
-import pandas
+
 from django.db import connection
+from django.core.cache import cache
+from django.db.models import Max
+
+import pandas
+
+from Asymbol.models import Symbol
+
 
 def convert_date_time_str_list_to_date_time_obj_list(time_list, format):
     date_time_obj_list = []
@@ -77,3 +83,22 @@ def calculate_slope(from_date, to_date):
     slope_data_frame['from_date'] = from_date
     slope_data_frame['to_date'] = to_date
     return slope_data_frame
+
+
+def get_limit_date_time():
+    limit_date_time = None
+    calculated_until_date_time = cache.get('calculated_until_date_time')
+    if calculated_until_date_time is None:
+        today_date = datetime.datetime.today().date()
+        cache.set('calculated_until_date_time', today_date)
+        limit_date_time = today_date
+    elif calculated_until_date_time is not None:
+        today_biggest_date = Symbol.objects.filter(stored_date__gte=calculated_until_date_time).aggregate(
+            today_biggest_date=Max('stored_date'))['today_biggest_date']
+        if today_biggest_date is None:
+            cache.set('calculated_until_date_time', calculated_until_date_time)
+            limit_date_time = calculated_until_date_time
+        else:
+            cache.set('calculated_until_date_time', today_biggest_date)
+            limit_date_time = today_biggest_date
+    return limit_date_time
