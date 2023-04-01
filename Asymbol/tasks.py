@@ -41,7 +41,9 @@ def get_data_from_tsetmc_com():
 @app.task()
 def manage_slope():
     slope_table_name = Slope.objects.model._meta.db_table
-    to_date, from_date = get_limit_date_time()
-    slope_data_frame = calculate_slope(from_date=from_date, to_date=to_date)
-    slope_data_frame['value'] = slope_data_frame['value'].round(decimals=2)
-    slope_data_frame.to_sql('{0}'.format(slope_table_name), con=ENGINE, if_exists='append', index=False)
+    range_date_time = get_limit_date_time()
+    if range_date_time is not None:
+        to_date, from_date = range_date_time
+        slope_data_frame = calculate_slope(from_date=from_date, to_date=to_date)
+        slope_data_frame['value'] = slope_data_frame['value'].round(decimals=2)
+        slope_data_frame.to_sql('{0}'.format(slope_table_name), con=ENGINE, if_exists='append', index=False)
