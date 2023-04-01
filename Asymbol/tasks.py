@@ -5,7 +5,8 @@ from django.db.models import Min, Max
 from Asymbol.models import Symbol, Slope
 from Exchange.celery import app
 from utils.engine import create_sqlite_engine
-from utils.task_functions import calculate_slope, calculate_final_price_changes_from_Final_percent_and_Final_amount
+from utils.task_functions import calculate_slope, calculate_final_price_changes_from_Final_percent_and_Final_amount, \
+    get_limit_date_time
 
 import finpy_tse as fpy
 
@@ -40,17 +41,7 @@ def get_data_from_tsetmc_com():
 @app.task()
 def manage_slope():
     slope_table_name = Slope.objects.model._meta.db_table
-    today_date_time = datetime.datetime.today()
-    today_date = datetime.datetime(year=today_date_time.year, month=today_date_time.month,
-                                   day=today_date_time.day)
-    slope_qs = Slope.objects.filter(from_date__gte=today_date)
-    if slope_qs.exists():
-        from_date = slope_qs.aggregate(last_date_slop=Max('to_date'))['last_date_slop']
-        to_date = from_date + datetime.timedelta(seconds=300)
-    else:
-        from_date = Symbol.objects.filter(stored_date__gte=today_date.date()).aggregate(
-            today_smallest_date=Min('stored_date'))['today_smallest_date']
-        to_date = from_date + datetime.timedelta(seconds=300)
+    to_date, from_date = get_limit_date_time()
     slope_data_frame = calculate_slope(from_date=from_date, to_date=to_date)
     slope_data_frame['value'] = slope_data_frame['value'].round(decimals=2)
     if len(slope_data_frame) == 0:
