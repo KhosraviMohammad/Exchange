@@ -20,6 +20,6 @@ class Symbol(models.Model):
 
 class Slope(models.Model):
     symbol_name = models.CharField(max_length=30, null=True, blank=True)
-    value = models.CharField(max_length=30, null=True, blank=True)
+    value = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     from_date = models.DateTimeField(null=True, blank=True)
     to_date = models.DateTimeField(null=True, blank=True)
