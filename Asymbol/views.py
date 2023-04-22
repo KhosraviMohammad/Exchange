@@ -14,7 +14,7 @@ from Asymbol.filters import SlopeFilter
 
 
 class SlopeView(viewsets.GenericViewSet, mixins.ListModelMixin):
-    queryset = Slope.objects.all()
+    queryset = Slope.objects.all().order_by('symbol_name')
     serializer_class = SlopeSerializer
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = SlopeFilter
