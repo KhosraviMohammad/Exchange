@@ -4,6 +4,8 @@
 
 venv
 .idea
+static
+media
 
 #---------------------------------
 #file
