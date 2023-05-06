@@ -178,3 +178,14 @@ REST_FRAMEWORK = {
 # django-cors-headers
 # https://github.com/adamchainz/django-cors-headers
 CORS_ALLOW_ALL_ORIGINS = True
+
+
+# rabbitmq
+RABBITMQ = {
+    "default": {
+        "HOST": os.getenv('RABBITMQ_HOST', '127.0.0.1'),
+        "PORT": os.getenv('RABBITMQ_PORT', 5672),
+        "USER": os.getenv('RABBITMQ_USER', 'guest'),
+        "PASSWORD": os.getenv('RABBITMQ_PASSWORD', 'guest'),
+    }
+}
