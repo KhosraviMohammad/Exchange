@@ -8,5 +8,6 @@ def create_postgres_engine():
     USER = data_base.get('USER')
     PASSWORD = data_base.get('PASSWORD')
     HOST = data_base.get('HOST')
-    engine = sqlalchemy.create_engine(fr'postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:5432/{NAME}')
+    PORT = data_base.get('PORT')
+    engine = sqlalchemy.create_engine(fr'postgresql+psycopg2://{USER}:{PASSWORD}@{HOST}:{PORT}/{NAME}')
     return engine
