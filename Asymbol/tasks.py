@@ -4,13 +4,13 @@ from django.db.models import Min, Max
 
 from Asymbol.models import Symbol, Slope
 from Exchange.celery import app
-from utils.engine import create_sqlite_engine
+from utils.engine import create_postgres_engine
 from utils.task_functions import calculate_slope, calculate_final_price_changes_from_Final_percent_and_Final_amount, \
     get_limit_date_time
 
 import finpy_tse as fpy
 
-ENGINE = create_sqlite_engine()
+ENGINE = create_postgres_engine()
 
 
 @app.task()
