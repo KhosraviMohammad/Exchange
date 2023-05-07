@@ -2,7 +2,9 @@ version: '1'
 
 services:
   Exchange:
-    image: python_django-exchange
+    image: django-exchange:1.0.2
+    depends_on:
+      - postgres
     working_dir: /Exchange
     volumes:
       - ./:/Exchange
@@ -13,14 +15,22 @@ services:
       'PASSWORD': amir
       'HOST': postgres
       'PORT': 5432
-    ports:
-      - 8000:8000
+      'RABBITMQ_USER': guest
+      'RABBITMQ_PASSWORD': guest
+      'RABBITMQ_HOST': rabbitmq
+      'RABBITMQ_PORT': 5672
+      'DEBUG': True
+      'SECRET_KEY': asldmasfnfindsoijeqoj213j2djiai8u32798ryhwwhc7934y
+      'ALLOWED_HOSTS': "*"
     networks:
       exchangeNet:
         aliases:
           - exchange
-#    command:
-#      bash -c "python manage.py migrate && python manage.py createcachetable"
+    command:
+#      bash -c "source dockervenv/bin/activate && pip install -r req.txt && python manage.py migrate
+#      && gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
+      bash -c "pip install -r req.txt && python manage.py migrate &&
+      gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
 
   postgres:
     image: postgres
@@ -33,10 +43,19 @@ services:
       exchangeNet:
         aliases:
           - postgres
+  rabbitmq:
+    image: rabbitmq
+    networks:
+      exchangeNet:
+        aliases:
+          - rabbitmq
   nginx:
-    image: nginx
+    image: exchange-nginx
     ports:
       - 80:80
+    volumes:
+      - ./static:/var/www/ExchangeStatics
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
     networks:
       exchangeNet:
         aliases:
