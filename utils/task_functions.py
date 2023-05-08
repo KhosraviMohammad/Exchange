@@ -47,8 +47,11 @@ def calculate_final_price_changes_from_Final_percent_and_Final_amount(data_frame
             final_price_change = None
         else:
             final_price_change = (final_price_amount * final_price_percent) / denominator
-        final_price_change_list.append(final_price_change)
-    return final_price_change_list
+        final_price_change_list.append((row[0], final_price_change))
+
+    final_price_change_data_frame = pandas.DataFrame(final_price_change_list, columns=[data_frame.index.name, 'final_price_change'])
+    final_price_change_data_frame.set_index(data_frame.index.name, inplace=True)
+    return final_price_change_data_frame
 
 
 def calculate_slope(from_date, to_date):
