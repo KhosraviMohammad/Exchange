@@ -5,6 +5,7 @@ services:
     image: django-exchange:1.0.2
     depends_on:
       - postgres
+      - rabbitmq
     working_dir: /Exchange
     volumes:
       - ./:/Exchange
@@ -30,6 +31,8 @@ services:
 #      bash -c "source dockervenv/bin/activate && pip install -r req.txt && python manage.py migrate
 #      && gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
       bash -c "pip install -r req.txt && python manage.py migrate &&
+      celery -A Exchange worker --detach -c 1 -f /var/log/%n.log --pidfile=/var/log/%n.pid &&
+      celery -A Exchange beat -l info --detach -f /var/log/beat.log &&
       gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
 
   postgres:
@@ -51,6 +54,8 @@ services:
           - rabbitmq
   nginx:
     image: exchange-nginx
+    depends_on:
+      - Exchange
     ports:
       - 80:80
     volumes:
