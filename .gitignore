@@ -6,6 +6,7 @@ venv
 .idea
 static
 media
+gitignore
 
 #---------------------------------
 #file
