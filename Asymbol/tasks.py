@@ -22,7 +22,10 @@ def get_data_from_tsetmc_com():
     '''
 
     symbol_table_name = Symbol.objects.model._meta.db_table
-    market_watch_data_frame = fpy.Get_MarketWatch(save_excel=False)[0]
+    try:
+        market_watch_data_frame = fpy.Get_MarketWatch(save_excel=False)[0]
+    except ValueError:
+        raise ConnectionError('\n no responds from tsetmc.com')
     market_watch_data_frame['stored_date'] = datetime.datetime.now()
 
     cleaned_market_watch_data_frame = market_watch_data_frame[[
@@ -36,9 +39,7 @@ def get_data_from_tsetmc_com():
         cleaned_market_watch_data_frame)
     cleaned_market_watch_data_frame.loc[:, ['final_price_change']] = final_price_change_data_frame['final_price_change']
 
-    cleaned_market_watch_data_frame.to_sql('{0}'.format(symbol_table_name), con=ENGINE, if_exists='append',
-                                           index=True)
-
+    cleaned_market_watch_data_frame.to_sql('{0}'.format(symbol_table_name), con=ENGINE, if_exists='append', index=True)
 
 
 @app.task()
@@ -49,7 +50,6 @@ def manage_slope():
         to_date, from_date = range_date_time
         slope_data_frame = calculate_slope(from_date=from_date, to_date=to_date)
         indexes_to_round = slope_data_frame.loc[slope_data_frame['value'].notnull()].index
-        slope_data_frame.loc[indexes_to_round, 'value'] = \
-        slope_data_frame.loc[slope_data_frame['value'].notnull()].round(decimals=2)['value']
+        slope_data_frame.loc[indexes_to_round, 'value'] = slope_data_frame.loc[slope_data_frame['value'].notnull()].round(decimals=2)['value']
 
         slope_data_frame.to_sql('{0}'.format(slope_table_name), con=ENGINE, if_exists='append', index=False)
