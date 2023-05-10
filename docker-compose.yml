@@ -5,7 +5,6 @@ services:
     image: django-exchange:1.0.2
     depends_on:
       - postgres
-      - rabbitmq
     working_dir: /Exchange
     volumes:
       - ./:/Exchange
@@ -20,7 +19,9 @@ services:
       'RABBITMQ_PASSWORD': guest
       'RABBITMQ_HOST': rabbitmq
       'RABBITMQ_PORT': 5672
-      'DEBUG': True
+      'REDIS_HOST': redis
+      'REDIS_PORT': 6379
+      'DEBUG': False
       'SECRET_KEY': asldmasfnfindsoijeqoj213j2djiai8u32798ryhwwhc7934y
       'ALLOWED_HOSTS': "*"
     networks:
@@ -31,9 +32,39 @@ services:
 #      bash -c "source dockervenv/bin/activate && pip install -r req.txt && python manage.py migrate
 #      && gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
       bash -c "pip install -r req.txt && python manage.py migrate &&
-      celery -A Exchange worker --detach -c 1 -f /var/log/%n.log --pidfile=/var/log/%n.pid &&
-      celery -A Exchange beat -l info --detach -f /var/log/beat.log &&
       gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
+  Exchange-celery:
+      image: django-exchange:1.0.2
+      depends_on:
+        - postgres
+        - rabbitmq
+      working_dir: /Exchange
+      volumes:
+        - ./:/Exchange
+      environment:
+        'ENGINE': django.db.backends.postgresql
+        'NAME': test
+        'USER': postgres
+        'PASSWORD': amir
+        'HOST': postgres
+        'PORT': 5432
+        'RABBITMQ_USER': guest
+        'RABBITMQ_PASSWORD': guest
+        'RABBITMQ_HOST': rabbitmq
+        'RABBITMQ_PORT': 5672
+        'REDIS_HOST': redis
+        'REDIS_PORT': 6379
+        'DEBUG': False
+        'SECRET_KEY': asldmasfnfindsoijeqoj213j2djiai8u32798ryhwwhc7934y
+        'ALLOWED_HOSTS': "*"
+      networks:
+        exchangeNet:
+          aliases:
+            - "exchange-celery"
+      command:
+        bash -c "pip install -r req.txt &&
+        celery -A Exchange beat -l info --detach -f ./gitignore/log/beat.log &&
+        celery -A Exchange worker -c 1 -l info -P eventlet"
 
   postgres:
     image: postgres
