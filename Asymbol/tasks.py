@@ -20,26 +20,28 @@ def get_data_from_tsetmc_com():
 
     :return:
     '''
-
     symbol_table_name = Symbol.objects.model._meta.db_table
-    try:
-        market_watch_data_frame = fpy.Get_MarketWatch(save_excel=False)[0]
-    except ValueError:
-        raise ConnectionError('\n no responds from tsetmc.com')
-    market_watch_data_frame['stored_date'] = datetime.datetime.now()
+    for repetition_number in range(6):
+        try:
+            market_watch_data_frame = fpy.Get_MarketWatch(save_excel=False)[0]
 
-    cleaned_market_watch_data_frame = market_watch_data_frame[[
-        'Name', 'Time', 'Final', 'Volume', 'Market', 'Sector', 'stored_date', 'Final(%)',
-    ]]
-    cleaned_market_watch_data_frame.columns = [
-        'name', 'time', 'final_price_amount', 'volume', 'market', 'sector', 'stored_date', 'final_price_percent'
-    ]
-    cleaned_market_watch_data_frame.index.name = 'symbol_name'
-    final_price_change_data_frame = calculate_final_price_changes_from_Final_percent_and_Final_amount(
-        cleaned_market_watch_data_frame)
-    cleaned_market_watch_data_frame.loc[:, ['final_price_change']] = final_price_change_data_frame['final_price_change']
+            market_watch_data_frame['stored_date'] = datetime.datetime.now()
 
-    cleaned_market_watch_data_frame.to_sql('{0}'.format(symbol_table_name), con=ENGINE, if_exists='append', index=True)
+            cleaned_market_watch_data_frame = market_watch_data_frame[[
+                'Name', 'Time', 'Final', 'Volume', 'Market', 'Sector', 'stored_date', 'Final(%)',
+            ]]
+            cleaned_market_watch_data_frame.columns = [
+                'name', 'time', 'final_price_amount', 'volume', 'market', 'sector', 'stored_date', 'final_price_percent'
+            ]
+            cleaned_market_watch_data_frame.index.name = 'symbol_name'
+            final_price_change_data_frame = calculate_final_price_changes_from_Final_percent_and_Final_amount(
+                cleaned_market_watch_data_frame)
+            cleaned_market_watch_data_frame.loc[:, ['final_price_change']] = final_price_change_data_frame['final_price_change']
+
+            cleaned_market_watch_data_frame.to_sql('{0}'.format(symbol_table_name), con=ENGINE, if_exists='append', index=True)
+        except ValueError:
+            print('no respond from tsetmc_com')
+        time.sleep(8)
 
 
 @app.task()
