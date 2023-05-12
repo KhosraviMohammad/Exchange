@@ -95,7 +95,7 @@ services:
     depends_on:
       - Exchange
     ports:
-      - 6040:6040
+      - 4000:4000
     volumes:
       - ./static:/var/www/ExchangeStatics
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf
