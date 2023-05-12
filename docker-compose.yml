@@ -2,6 +2,7 @@ version: '2.2'
 
 services:
   Exchange:
+    container_name: exchange
     image: django-exchange:1.0.2
     depends_on:
       - postgres
@@ -28,12 +29,15 @@ services:
       exchangeNet:
         aliases:
           - exchange
+    ports:
+      - 8000:8000
     command:
 #      bash -c "source dockervenv/bin/activate && pip install -r req.txt && python manage.py migrate
 #      && gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
       bash -c "pip install -r req.txt && python manage.py migrate &&
       gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
   Exchange-celery:
+      container_name: exchange-celery
       image: django-exchange:1.0.2
       depends_on:
         - postgres
@@ -67,6 +71,7 @@ services:
         celery -A Exchange worker -c 1 -l info -P eventlet"
 
   postgres:
+    container_name: postgres
     image: postgres
     volumes:
       - postgres:/var/lib/postgresql/data
@@ -78,12 +83,14 @@ services:
         aliases:
           - postgres
   rabbitmq:
+    container_name: rabbitmq
     image: rabbitmq
     networks:
       exchangeNet:
         aliases:
           - rabbitmq
   nginx:
+    container_name: nginx
     image: exchange-nginx
     depends_on:
       - Exchange
