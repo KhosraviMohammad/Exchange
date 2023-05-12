@@ -2,7 +2,7 @@ version: '2.2'
 
 services:
   Exchange:
-    container_name: exchange
+    container_name: exchange-exchange
     image: django-exchange:1.0.2
     depends_on:
       - postgres
@@ -71,7 +71,7 @@ services:
         celery -A Exchange worker -c 1 -l info -P eventlet"
 
   postgres:
-    container_name: postgres
+    container_name: exchange-postgres
     image: postgres
     volumes:
       - postgres:/var/lib/postgresql/data
@@ -83,15 +83,15 @@ services:
         aliases:
           - postgres
   rabbitmq:
-    container_name: rabbitmq
+    container_name: exchange-rabbitmq
     image: rabbitmq
     networks:
       exchangeNet:
         aliases:
           - rabbitmq
   nginx:
-    container_name: nginx
-    image: exchange-nginx
+    container_name: exchange-nginx
+    image: nginx
     depends_on:
       - Exchange
     ports:
