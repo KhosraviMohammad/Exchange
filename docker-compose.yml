@@ -21,7 +21,7 @@ services:
       'RABBITMQ_PORT': 5672
       'REDIS_HOST': redis
       'REDIS_PORT': 6379
-      'DEBUG': False
+      'DEBUG': "False"
       'SECRET_KEY': asldmasfnfindsoijeqoj213j2djiai8u32798ryhwwhc7934y
       'ALLOWED_HOSTS': "*"
     networks:
