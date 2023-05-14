@@ -1,7 +1,7 @@
 version: '2.2'
 
 services:
-  Exchange:
+  exchange:
     container_name: exchange-exchange
     image: django-exchange:1.0.2
     depends_on:
@@ -36,7 +36,7 @@ services:
 #      && gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
       bash -c "pip install -r req.txt && python manage.py migrate &&
       gunicorn --workers=1 -b 0.0.0.0:8000 'Exchange.wsgi:application'"
-  Exchange-celery:
+  exchange-celery:
       container_name: exchange-celery
       image: django-exchange:1.0.2
       depends_on:
@@ -58,7 +58,7 @@ services:
         'RABBITMQ_PORT': 5672
         'REDIS_HOST': redis
         'REDIS_PORT': 6379
-        'DEBUG': 'False'
+        'DEBUG': "False"
         'SECRET_KEY': asldmasfnfindsoijeqoj213j2djiai8u32798ryhwwhc7934y
         'ALLOWED_HOSTS': "*"
       networks:
@@ -93,7 +93,8 @@ services:
     container_name: exchange-nginx
     image: nginx
     depends_on:
-      - Exchange
+      - exchange
+      - next
     ports:
       - 4000:4000
     volumes:
@@ -103,6 +104,15 @@ services:
       exchangeNet:
         aliases:
           - nginx
+  next:
+      container_name: exchange-next
+      image: tsemc-v1
+      depends_on:
+        - exchange
+      networks:
+        exchangeNet:
+          aliases:
+            - next
 networks:
   exchangeNet:
     driver: bridge
