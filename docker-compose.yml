@@ -67,7 +67,7 @@ services:
             - "exchange-celery"
       command:
         bash -c "pip install -r req.txt &&
-        celery -A Exchange beat -l info --detach -f ./gitignore/log/beat.log &&
+        celery -A Exchange beat -l info --detach &&
         celery -A Exchange worker -c 1 -l info -P eventlet"
 
   postgres:
