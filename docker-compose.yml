@@ -106,7 +106,7 @@ services:
           - nginx
   next:
       container_name: exchange-next
-      image: msoheil/tsemc-v1:v_2
+      image: msoheil/tsemc-v1:latest
       depends_on:
         - exchange
       networks:
