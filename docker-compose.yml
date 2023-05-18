@@ -4,6 +4,7 @@ services:
   exchange:
     container_name: exchange-exchange
     image: django-exchange:1.0.2
+    restart: on-failure
     depends_on:
       - postgres
     working_dir: /Exchange
@@ -39,6 +40,7 @@ services:
   exchange-celery:
       container_name: exchange-celery
       image: django-exchange:1.0.2
+      restart: on-failure
       depends_on:
         - postgres
         - rabbitmq
@@ -73,6 +75,7 @@ services:
   postgres:
     container_name: exchange-postgres
     image: postgres
+    restart: on-failure
     volumes:
       - postgres:/var/lib/postgresql/data
     environment:
@@ -85,6 +88,7 @@ services:
   rabbitmq:
     container_name: exchange-rabbitmq
     image: rabbitmq
+    restart: on-failure
     networks:
       exchangeNet:
         aliases:
@@ -92,9 +96,9 @@ services:
   nginx:
     container_name: exchange-nginx
     image: nginx
+    restart: on-failure
     depends_on:
       - exchange
-      - next
     ports:
       - 4000:4000
     volumes:
@@ -104,15 +108,6 @@ services:
       exchangeNet:
         aliases:
           - nginx
-  next:
-      container_name: exchange-next
-      image: msoheil/tsemc-v1:latest
-      depends_on:
-        - exchange
-      networks:
-        exchangeNet:
-          aliases:
-            - next
 networks:
   exchangeNet:
     driver: bridge
