@@ -108,6 +108,16 @@ services:
       exchangeNet:
         aliases:
           - nginx
+  next:
+      container_name: exchange-next
+      image: msoheil/tsemc-v1:v6
+      restart: on-failure
+      depends_on:
+        - exchange
+      networks:
+        exchangeNet:
+          aliases:
+            - next
 networks:
   exchangeNet:
     driver: bridge
