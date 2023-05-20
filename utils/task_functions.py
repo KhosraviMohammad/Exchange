@@ -2,7 +2,7 @@ import datetime
 
 from django.db import connection
 from django.core.cache import cache
-from django.db.models import Max, Q
+from django.db.models import Max, Q, Min
 
 import pandas
 
@@ -98,7 +98,9 @@ def get_limit_date_time():
     if today_biggest_date is None:
         limit_date_time = None
     elif today_biggest_date is not None and calculated_until_date_time is None:
-        limit_date_time = (today_biggest_date, today_date)
+        first_time = Symbol.objects.filter((Q(stored_date__gte=today_date))).aggregate(
+            today_smallest_date=Max('stored_date'))['today_smallest_date']
+        limit_date_time = (today_biggest_date, first_time)
         cache.set('calculated_until_date_time', today_biggest_date)
     elif today_biggest_date is not None and calculated_until_date_time is not None:
         limit_date_time = (today_biggest_date, calculated_until_date_time)
