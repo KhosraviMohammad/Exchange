@@ -41,7 +41,8 @@ def get_data_from_tsetmc_com():
             cleaned_market_watch_data_frame.to_sql('{0}'.format(symbol_table_name), con=ENGINE, if_exists='append', index=True)
         except ValueError:
             print('no respond from tsetmc_com')
-        time.sleep(10)
+        print('fetching data:', datetime.datetime.now())
+        time.sleep(18)
 
 
 @app.task()
