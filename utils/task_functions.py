@@ -99,7 +99,7 @@ def get_limit_date_time():
         limit_date_time = None
     elif today_biggest_date is not None and calculated_until_date_time is None:
         first_time = Symbol.objects.filter((Q(stored_date__gte=today_date))).aggregate(
-            today_smallest_date=Max('stored_date'))['today_smallest_date']
+            today_smallest_date=Min('stored_date'))['today_smallest_date']
         limit_date_time = (today_biggest_date, first_time)
         cache.set('calculated_until_date_time', today_biggest_date)
     elif today_biggest_date is not None and calculated_until_date_time is not None:
