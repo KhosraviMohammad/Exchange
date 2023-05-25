@@ -21,7 +21,7 @@ def get_data_from_tsetmc_com():
     :return:
     '''
     symbol_table_name = Symbol.objects.model._meta.db_table
-    for repetition_number in range(6):
+    for repetition_number in range(3):
         try:
             market_watch_data_frame = fpy.Get_MarketWatch(save_excel=False)[0]
 
@@ -42,7 +42,7 @@ def get_data_from_tsetmc_com():
         except ValueError:
             print('no respond from tsetmc_com')
         print('fetching data:', datetime.datetime.now())
-        time.sleep(18)
+        time.sleep(30)
 
 
 @app.task()
