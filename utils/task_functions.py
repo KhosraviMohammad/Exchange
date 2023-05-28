@@ -58,7 +58,7 @@ def calculate_slope(from_date, to_date):
     with connection.cursor() as cursor:
         sub_query = f'''
             WITH Asymbol_symbol_subquery AS (
-                SELECT "id" as pk, symbol_name, to_seconds(CAST(time as text)) as time, CAST(final_price_change as float) as price 
+                SELECT "id" as pk, symbol_name, to_seconds(CAST(stored_date as text)) as time, CAST(final_price_change as float) as price 
                 from "Asymbol_symbol" 
                 WHERE stored_date BETWEEN '{from_date}' AND '{to_date}'
             ), average_subquery AS (
